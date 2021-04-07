@@ -17,10 +17,3 @@ enum MsgType
   MSG_TYPE_PEOPLE = 1;
 }
 
-message MSG {
-  MsgType msgType = 1;
-  Person person = 2;
-  People people = 3;
-}
-
-

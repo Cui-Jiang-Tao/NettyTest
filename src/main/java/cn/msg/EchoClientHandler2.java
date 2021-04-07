@@ -1,5 +1,6 @@
 package cn.msg;
 
+import com.google.protobuf.AbstractMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -14,11 +15,12 @@ import java.util.Random;
 public class EchoClientHandler2 extends
         SimpleChannelInboundHandler<ByteBuf> {
 
-    public void sendMsg(Channel channel, Test.MSG.Builder msg) {
-        byte[] b = msg.build().toByteArray();
+    public void sendMsg(Channel channel,  int type, AbstractMessage msg) {
+        byte[] b = msg.toByteArray();
 
         System.out.println(b.length);
-        channel.write(Unpooled.copyInt(b.length));
+        channel.write(Unpooled.copyInt(b.length + 4));
+        channel.write(Unpooled.copyInt(type));
         channel.writeAndFlush(Unpooled.copiedBuffer(b));
     }
 
@@ -29,26 +31,13 @@ public class EchoClientHandler2 extends
         Test.Person.Builder person = Test.Person.newBuilder();
         person.setId(1234);
         person.setEmail(getRandString());
-
-        Test.MSG.Builder msg1 = Test.MSG.newBuilder();
-        msg1.setMsgType(Test.MsgType.MSG_TYPE_PERSON);
-        msg1.setPerson(person);
-
-        sendMsg(channel, msg1);
-
-
+        sendMsg(channel, Test.MsgType.MSG_TYPE_PERSON.ordinal(), person.build());
 
         Test.People.Builder people = Test.People.newBuilder();
         people.setCount(990);
         people.setEmail(getRandString());
         people.setName(getRandString());
-
-        Test.MSG.Builder msg2 = Test.MSG.newBuilder();
-        msg2.setMsgType(Test.MsgType.MSG_TYPE_PEOPLE);
-        msg2.setPeople(people);
-
-        sendMsg(channel, msg2);
-
+        sendMsg(channel, Test.MsgType.MSG_TYPE_PEOPLE.ordinal(), people.build());
     }
 
     @Override       //acceptInboundMessage

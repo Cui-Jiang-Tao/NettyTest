@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class ParseMsg {
     static CircleByteBuffer buf = new CircleByteBuffer();
@@ -40,16 +41,20 @@ public class ParseMsg {
 
     private static void dealMsg() throws InvalidProtocolBufferException {
         System.out.println(completeMsg.length);
-        Test.MSG msg = Test.MSG.parseFrom(completeMsg);
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.put(completeMsg, 0, 4);
+        buffer.flip();
+        int type = buffer.getInt();
 
-        if(msg.getMsgType() == Test.MsgType.MSG_TYPE_PERSON) {
-            Test.Person p = msg.getPerson();
+        completeMsg = Arrays.copyOfRange(completeMsg, 4, completeMsg.length);
+
+        if(type == Test.MsgType.MSG_TYPE_PERSON.ordinal()) {
+            Test.Person p = Test.Person.parseFrom(completeMsg);
             System.out.println("Server received: " + p.getEmail());
             System.out.println("Server received id: " + p.getId());
-
         }
-        else if(msg.getMsgType() == Test.MsgType.MSG_TYPE_PEOPLE) {
-            Test.People p = msg.getPeople();
+        else if(type == Test.MsgType.MSG_TYPE_PEOPLE.ordinal()) {
+            Test.People p = Test.People.parseFrom(completeMsg);
             System.out.println("Server received count: " + p.getCount());
             System.out.println("Server received email: " + p.getEmail());
             System.out.println("Server received name: " + p.getName());
